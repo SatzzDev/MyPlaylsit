@@ -1,0 +1,215 @@
+  <!DOCTYPE html>
+  <html lang="id">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>SatzzDev - Playlist</title>
+    <style>
+      /* Latar belakang dengan animasi gradasi */
+      @keyframes gradientBackground {
+        0%, 100% { background: linear-gradient(135deg, #4b6cb7, #182848); }
+        50% { background: linear-gradient(135deg, #182848, #4b6cb7); }
+      }
+
+      body {
+        animation: gradientBackground 10s infinite alternate;
+        background-size: 200% 200%;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+
+    </style>
+  </head>
+  <body class="text-white">
+
+    <!-- Container Utama -->
+    <div class="bg-gray-900 bg-opacity-90 p-8 rounded-lg shadow-2xl w-96">
+      <!-- Album Cover -->
+      <img id="albumImage" src="https://telegra.ph/file/2acfcad8d39e49d95addd.jpg" alt="Song Cover" class="w-64 h-64 mx-auto rounded-lg shadow-xl mb-6">
+
+      <!-- Song Info -->
+      <h2 id="songTitle" class="text-2xl font-bold text-center mb-2 text-blue-400">idk</h2>
+      <p id="channelName" class="text-center text-gray-400 mb-6">Highvyn, Taylor Shin</p>
+
+      <!-- Music Controls -->
+      <div class="flex justify-center space-x-6">
+        <button id="prevButton" class="p-4 rounded-full bg-gray-700 hover:bg-gray-600 text-white">
+          <i class="fas fa-step-backward"></i>
+        </button>
+        <button id="playButton" class="p-6 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300">
+          <i id="playIcon" class="fas fa-play"></i>
+        </button>
+        <button id="nextButton" class="p-4 rounded-full bg-gray-700 hover:bg-gray-600 text-white">
+          <i class="fas fa-step-forward"></i>
+        </button>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="mt-6">
+        <div class="w-full bg-gray-600 h-2 rounded-full overflow-hidden">
+          <div id="progressBar" class="bg-blue-400 h-full w-0 transition-all duration-300"></div>
+        </div>
+        <div class="flex justify-between text-sm text-gray-400 mt-2">
+          <span id="currentTime">0:00</span>
+          <span id="duration">3:53</span>
+        </div>
+      </div>
+
+      <!-- Tombol Popup -->
+      <button id="showSongsButton" class="w-full mt-6 py-2 px-4 bg-blue-500 hover:bg-blue-600 rounded-lg text-white font-semibold">
+        <i class="fas fa-list mr-2"></i>Daftar Lagu
+      </button>
+    </div>
+
+    <!-- Modal Popup -->
+      <div id="info-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+      <div class="bg-white p-6 rounded-lg w-96 shadow-2xl transform transition-all modal-enter">
+        <h3 class="text-xl font-bold mb-4 text-gray-700"><i class="fas fa-music mr-2"></i>Daftar Lagu</h3>
+        <ul id="songList" class="space-y-3 max-h-60 overflow-y-auto">
+          <!-- Daftar lagu akan ditampilkan di sini -->
+        </ul>
+        <button id="closeModalButton" class="mt-4 w-full py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white">
+          Tutup
+        </button>
+      </div>
+    </div>
+
+  <script>
+    // Menggunakan JSON.stringify untuk menyuntikkan data ke dalam script agar karakter khusus dapat ditangani
+    const songs = <%- JSON.stringify(songs) %>;
+
+    const audio = new Audio();
+    const playButton = document.getElementById('playButton');
+    const prevButton = document.getElementById('prevButton');
+    const nextButton = document.getElementById('nextButton');
+    const progressBar = document.getElementById('progressBar');
+    const currentTimeDisplay = document.getElementById('currentTime');
+    const durationDisplay = document.getElementById('duration');
+    const albumImage = document.getElementById('albumImage');
+    const songTitle = document.getElementById('songTitle');
+    const channelName = document.getElementById('channelName');
+    const playIcon = document.getElementById('playIcon');
+
+    let currentSongIndex = 0;
+
+    function loadSong(index) {
+      const song = songs[index];
+      audio.src = song.url;
+      albumImage.src = song.image;
+      songTitle.textContent = song.title;
+      channelName.textContent = song.channel;
+
+      // Menunggu metadata audio dimuat untuk mendapatkan durasi yang valid
+      audio.addEventListener('loadedmetadata', () => {
+        durationDisplay.textContent = formatTime(audio.duration);
+      });
+
+      audio.load();
+      playIcon.classList.remove('fa-play');
+      playIcon.classList.add('fa-spinner');
+          // Tunggu hingga audio siap diputar
+          audio.addEventListener('canplay', () => {
+            audio.play();
+            playIcon.classList.remove('fa-spinner');
+            playIcon.classList.add('fa-pause');
+          }); 
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? '0' + secs : secs}`;
+    }
+
+      playButton.addEventListener('click', () => {
+        if (audio.paused) {
+          // Muat audio jika belum dimuat sepenuhnya
+          audio.load(); // Pastikan ini hanya dijalankan jika audio baru saja diganti
+      playIcon.classList.remove('fa-play');
+      playIcon.classList.add('fa-spinner');
+          // Tunggu hingga audio siap diputar
+          audio.addEventListener('canplay', () => {
+            audio.play();
+            playIcon.classList.remove('fa-spinner');
+            playIcon.classList.add('fa-pause');
+          }, { once: true }); // Event listener ini hanya berjalan sekali per klik
+        } else {
+          // Jika audio sudah berjalan, maka pause
+          audio.pause();
+          playIcon.classList.remove('fa-pause');
+          playIcon.classList.add('fa-play');
+        }
+      });
+
+    prevButton.addEventListener('click', () => {
+      if (currentSongIndex > 0) {
+        currentSongIndex--;
+        loadSong(currentSongIndex);
+      }
+    });
+
+    nextButton.addEventListener('click', () => {
+      if (currentSongIndex < songs.length - 1) {
+        currentSongIndex++;
+        loadSong(currentSongIndex);
+      }
+    });
+
+    audio.addEventListener('ended', () => {
+      if (currentSongIndex < songs.length - 1) {
+        currentSongIndex++;
+        loadSong(currentSongIndex);
+      }
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      const progress = (audio.currentTime / audio.duration) * 100;
+      progressBar.style.width = progress + '%';
+      currentTimeDisplay.textContent = formatTime(audio.currentTime);
+    });
+
+    // Load the first song
+    loadSong(currentSongIndex);
+    const showSongsButton = document.getElementById('showSongsButton');
+    const songModal = document.getElementById('info-popup');
+    const closeModalButton = document.getElementById('closeModalButton');
+    const songList = document.getElementById('songList');
+
+    // Fungsi untuk menampilkan daftar lagu
+    function displaySongList() {
+      songList.innerHTML = ''; // Bersihkan daftar sebelumnya
+      songs.forEach((song, index) => {
+        const listItem = document.createElement('li');
+        listItem.className = 'p-2 border-b last:border-b-0 border-gray-200 text-gray-800 cursor-pointer hover:bg-gray-100 rounded-lg';
+        listItem.textContent = `${index + 1}. ${song.title} - ${song.channel}`;
+
+        // Pilih lagu saat diklik
+        listItem.addEventListener('click', () => {
+          loadSong(index);
+          songModal.classList.add('hidden');
+        });
+
+        songList.appendChild(listItem);
+      });
+    }
+
+    showSongsButton.addEventListener('click', () => {
+      displaySongList();
+      songModal.classList.remove('hidden');
+    });
+
+    closeModalButton.addEventListener('click', () => {
+      songModal.classList.add('hidden'); // Pastikan class hidden ditambahkan kembali
+    });
+
+  </script>
+
+</body>
+</html>
