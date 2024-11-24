@@ -9,13 +9,15 @@
     <style>
       /* Latar belakang dengan animasi gradasi */
       @keyframes gradientBackground {
-        0%, 100% { background: linear-gradient(135deg, #4b6cb7, #182848); }
-        50% { background: linear-gradient(135deg, #182848, #4b6cb7); }
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
       }
 
       body {
-        animation: gradientBackground 10s infinite alternate;
-        background-size: 200% 200%;
+        animation: gradientBackground 10s ease infinite alternate; /* Durasi dan transisi smooth */
+        background: linear-gradient(135deg, #4b6cb7, #182848, #4b6cb7);
+        background-size: 300% 300%;  /* Perbesar ukuran gradasi untuk efek lebih halus */
         height: 100vh;
         display: flex;
         justify-content: center;
@@ -23,7 +25,6 @@
         margin: 0;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       }
-
 
     </style>
   </head>
@@ -35,8 +36,8 @@
       <img id="albumImage" src="https://telegra.ph/file/2acfcad8d39e49d95addd.jpg" alt="Song Cover" class="w-64 h-64 mx-auto rounded-lg shadow-xl mb-6">
 
       <!-- Song Info -->
-      <h2 id="songTitle" class="text-2xl font-bold text-center mb-2 text-blue-400">idk</h2>
-      <p id="channelName" class="text-center text-gray-400 mb-6">Highvyn, Taylor Shin</p>
+      <h2 id="songTitle" class="text-2xl font-bold text-center mb-2 text-blue-400">Unknown</h2>
+      <p id="channelName" class="text-center text-gray-400 mb-6">Unknown</p>
 
       <!-- Music Controls -->
       <div class="flex justify-center space-x-6">
@@ -64,19 +65,19 @@
 
       <!-- Tombol Popup -->
       <button id="showSongsButton" class="w-full mt-6 py-2 px-4 bg-blue-500 hover:bg-blue-600 rounded-lg text-white font-semibold">
-        <i class="fas fa-list mr-2"></i>Daftar Lagu
+        <i class="fas fa-list mr-2"></i>Song List
       </button>
     </div>
 
     <!-- Modal Popup -->
       <div id="info-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
       <div class="bg-white p-6 rounded-lg w-96 shadow-2xl transform transition-all modal-enter">
-        <h3 class="text-xl font-bold mb-4 text-gray-700"><i class="fas fa-music mr-2"></i>Daftar Lagu</h3>
+        <h3 class="text-xl font-bold mb-4 text-gray-700"><i class="fas fa-music mr-2"></i>Song List</h3>
         <ul id="songList" class="space-y-3 max-h-60 overflow-y-auto">
           <!-- Daftar lagu akan ditampilkan di sini -->
         </ul>
         <button id="closeModalButton" class="mt-4 w-full py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white">
-          Tutup
+          Close
         </button>
       </div>
     </div>
@@ -90,6 +91,7 @@
     const prevButton = document.getElementById('prevButton');
     const nextButton = document.getElementById('nextButton');
     const progressBar = document.getElementById('progressBar');
+      const progressContainer = document.querySelector('.w-full.bg-gray-600');
     const currentTimeDisplay = document.getElementById('currentTime');
     const durationDisplay = document.getElementById('duration');
     const albumImage = document.getElementById('albumImage');
@@ -101,7 +103,7 @@
 
     function loadSong(index) {
       const song = songs[index];
-      audio.src = song.url;
+      audio.src = song.audio_url;
       albumImage.src = song.image;
       songTitle.textContent = song.title;
       channelName.textContent = song.channel;
@@ -174,7 +176,15 @@
       progressBar.style.width = progress + '%';
       currentTimeDisplay.textContent = formatTime(audio.currentTime);
     });
+    progressContainer.addEventListener('click', (e) => {
+      const rect = progressContainer.getBoundingClientRect();  // Dapatkan ukuran dan posisi progress bar
+      const clickX = e.clientX - rect.left;  // Hitung posisi klik relatif terhadap progress bar
+      const width = rect.width;  // Lebar progress bar
+      const duration = audio.duration;  // Durasi total lagu
 
+      // Hitung waktu baru berdasarkan posisi klik
+      audio.currentTime = (clickX / width) * duration;
+    });
     // Load the first song
     loadSong(currentSongIndex);
     const showSongsButton = document.getElementById('showSongsButton');
